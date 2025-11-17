@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>SafeQR – веб-интерфейс</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+        body {
+            font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+            margin: 0;
+            background: #f6f8fa;
+            color: #1f2328;
+        }
+        header {
+            background: linear-gradient(120deg, #0d6efd, #6610f2);
+            color: #fff;
+            padding: 24px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        main {
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        section {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+        h2 {
+            margin-top: 0;
+        }
+        textarea {
+            width: 100%;
+            min-height: 90px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #cfd8e3;
+            font-size: 16px;
+            resize: vertical;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px dashed #a4b0be;
+            border-radius: 10px;
+            background: #fdfdfd;
+        }
+        .actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #0d6efd;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        .preview img {
+            max-width: 260px;
+            border: 1px solid #d9e3f0;
+            border-radius: 12px;
+            background: #fff;
+            padding: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .alert {
+            padding: 14px 18px;
+            background: #fdecea;
+            color: #c0392b;
+            border: 1px solid #f5c2c7;
+            border-radius: 10px;
+        }
+        .result-card {
+            border: 1px solid #e1e7ef;
+            border-radius: 12px;
+            padding: 16px;
+            background: #f8fafc;
+        }
+        .risk-bar {
+            padding: 12px;
+            border-radius: 12px;
+            color: #fff;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .risk-low {
+            background: #16a085;
+        }
+        .risk-medium {
+            background: #f4d03f;
+            color: #4b3b00;
+        }
+        .risk-high {
+            background: #e74c3c;
+        }
+        .warnings ul {
+            padding-left: 20px;
+            margin: 8px 0 0 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #e1e7ef;
+        }
+        th {
+            background: #f1f4f8;
+        }
+        .log-area {
+            background: #101727;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: "JetBrains Mono", Consolas, monospace;
+            max-height: 280px;
+            overflow-y: auto;
+            white-space: pre-line;
+        }
+        footer {
+            text-align: center;
+            color: #6c757d;
+            padding: 12px;
+        }
+        @media (prefers-color-scheme: dark) {
+            body { background: #0f172a; color: #e2e8f0; }
+            section { background: #1e293b; box-shadow: none; }
+            textarea, input[type="file"] { background: #0f172a; color: #e2e8f0; border-color: #475569; }
+            table th { background: #0f172a; }
+            table td { border-bottom-color: #27354d; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>SafeQR – генератор и сканер безопасных QR-кодов</h1>
+    <p>Быстрая проверка ссылок и журнал безопасности прямо из браузера</p>
+</header>
+<main>
+    {% if error %}
+        <section class="alert">
+            <strong>Ошибка:</strong> {{ error }}
+        </section>
+    {% endif %}
+
+    <section>
+        <h2>1. Генерация безопасного QR-кода</h2>
+        <form method="post" action="/generate">
+            <label for="payload">Текст или URL:</label>
+            <textarea id="payload" name="data" placeholder="https://example.com/login" required>{{ qr_payload or '' }}</textarea>
+            <div class="actions">
+                <button type="submit">Создать QR</button>
+            </div>
+        </form>
+        {% if qr_image %}
+            <div class="preview" style="margin-top:16px;">
+                <strong>Предпросмотр:</strong>
+                <div>
+                    <img src="data:image/png;base64,{{ qr_image }}" alt="QR preview">
+                </div>
+                <a class="actions" style="display:inline-block; margin-top:10px;" href="data:image/png;base64,{{ qr_image }}" download="safeqr.png">Скачать изображение</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>2. Сканирование QR-кода</h2>
+        <form method="post" action="/scan" enctype="multipart/form-data" class="grid">
+            <div>
+                <label for="qr_file">Изображение QR (png/jpg). Можно сделать снимок с камеры.</label>
+                <input id="qr_file" name="qr_file" type="file" accept="image/*" capture="environment" required>
+            </div>
+            <div class="actions" style="align-items:flex-end;">
+                <button type="submit">Сканировать</button>
+            </div>
+        </form>
+        {% if scan_result %}
+            <div class="result-card" style="margin-top:18px;">
+                <h3>Результат:</h3>
+                <p>{{ scan_result }}</p>
+            </div>
+        {% endif %}
+        {% if security_report %}
+            <div class="warnings">
+                <div class="risk-bar risk-{{ security_report.risk_level }}">Уровень риска: {{ security_report.risk_level.upper() }}</div>
+                <h4>Предупреждения:</h4>
+                <ul>
+                    {% if security_report.warnings %}
+                        {% for item in security_report.warnings %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Ссылка выглядит безопасной.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>3. Последние проверки</h2>
+        {% if recent_checks %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Ссылка</th>
+                        <th>Риск</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for record in recent_checks %}
+                        <tr>
+                            <td>{{ record.url }}</td>
+                            <td>{{ record.risk }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>Пока нет сканированных ссылок.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>4. Журнал событий</h2>
+        <div class="log-area">{{ log_content }}</div>
+    </section>
+</main>
+<footer>
+    SafeQR &copy; 2024 – локальная защита от фишинга
+</footer>
+</body>
+</html>

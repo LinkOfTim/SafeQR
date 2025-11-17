@@ -1,0 +1,20 @@
+[2025-11-14 18:06:10] ERROR/WEB_CRASH: Не найдена библиотека pyzbar. Установите зависимости.
+[2025-11-14 18:06:44] ERROR/WEB_CRASH: Не найдена библиотека pyzbar. Установите зависимости.
+[2025-11-14 18:06:59] ERROR/WEB_CRASH: Не найдена библиотека pyzbar. Установите зависимости.
+[2025-11-14 18:08:12] ERROR/WEB_GENERATE: Требуется qrcode версии не ниже 7.4. Установите актуальную библиотеку.
+[2025-11-14 18:15:01] ERROR/WEB_GENERATE: module 'qrcode' has no attribute '__version__'
+[2025-11-14 20:56:06] QR_GENERATED: Файл: /tmp/tmpy79wofs2.png
+[2025-11-17 16:49:39] QR_GENERATED: Файл: /tmp/tmpxiv_ygtx.png
+[2025-11-17 16:49:53] QR_SCANNED_FILE: Источник: /tmp/tmp8ohhk1es.png
+[2025-11-17 16:52:44] QR_GENERATED: Файл: /tmp/tmpe7j67xqn.png
+[2025-11-17 16:52:53] QR_SCANNED_FILE: Источник: /tmp/tmpzmill1j1.png
+[2025-11-17 16:53:16] QR_GENERATED: Файл: /tmp/tmppfp0lxjd.png
+[2025-11-17 16:53:25] QR_SCANNED_FILE: Источник: /tmp/tmpbgt7o8ok.png
+[2025-11-17 16:55:18] QR_GENERATED: Файл: /tmp/tmp1p1xm1sk.png
+[2025-11-17 16:55:25] QR_SCANNED_FILE: Источник: /tmp/tmp3n_uca89.png
+[2025-11-17 16:55:38] QR_GENERATED: Файл: /tmp/tmper4c4bqd.png
+[2025-11-17 16:55:46] QR_SCANNED_FILE: Источник: /tmp/tmp7cutus8z.png
+[2025-11-17 16:56:47] QR_GENERATED: Файл: /tmp/tmp_urxfotk.png
+[2025-11-17 16:56:55] QR_SCANNED_FILE: Источник: /tmp/tmpf85z1kls.png
+[2025-11-17 17:00:21] QR_GENERATED: Файл: /tmp/tmprs3t345c.png
+[2025-11-17 17:00:31] QR_SCANNED_FILE: Источник: /tmp/tmpyn1_nbv2.png
