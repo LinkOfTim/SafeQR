@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from typing import Final, List
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qsl
 
 from safeqr.utils import validators
 
@@ -17,6 +17,8 @@ _SUSPICIOUS_WORDS: Final[list[str]] = [
     "confirm",
     "bank",
     "update",
+    "account",
+    "auth",
 ]
 
 _KNOWN_BRANDS: Final[list[str]] = [
@@ -26,7 +28,25 @@ _KNOWN_BRANDS: Final[list[str]] = [
     "facebook.com",
     "paypal.com",
     "amazon.com",
+    "instagram.com",
+    "netflix.com",
+    "steamcommunity.com",
+    "kaspibank.kz",
+    "bank.kz",
 ]
+
+_SUSPICIOUS_PARAMS: Final[set[str]] = {
+    "redirect",
+    "redir",
+    "return",
+    "next",
+    "continue",
+    "url",
+    "target",
+    "dest",
+    "destination",
+    "goto",
+}
 
 
 @dataclass
@@ -65,13 +85,54 @@ def _check_keywords(url_lower: str, warnings: List[str]) -> None:
             warnings.append(f"Подозрительное слово в ссылке: {word}.")
 
 
+def _contains_brand_fragment(domain_skeleton: str, brand_label: str) -> bool:
+    brand_skeleton = validators.ascii_skeleton(brand_label)
+    domain_compact = "".join(ch for ch in domain_skeleton if ch.isalnum())
+    brand_compact = "".join(ch for ch in brand_skeleton if ch.isalnum())
+    if not domain_compact or not brand_compact:
+        return False
+    if brand_compact in domain_compact:
+        return True
+    if len(domain_compact) < len(brand_compact):
+        domain_compact, brand_compact = brand_compact, domain_compact
+    for idx in range(len(domain_compact) - len(brand_compact) + 1):
+        chunk = domain_compact[idx : idx + len(brand_compact)]
+        if SequenceMatcher(None, chunk, brand_compact).ratio() >= 0.85:
+            return True
+    return False
+
+
+def _check_query_params(parsed, warnings: List[str]) -> None:
+    if not parsed.query:
+        return
+    try:
+        params = parse_qsl(parsed.query, keep_blank_values=True)
+    except ValueError:
+        return
+    for key, value in params:
+        key_lower = key.lower()
+        if key_lower in _SUSPICIOUS_PARAMS:
+            warnings.append(f"Параметр '{key}' может использоваться для редиректа или подмены.")
+        if value and "http://" in value.lower():
+            warnings.append(f"Параметр '{key}' перенаправляет на небезопасный HTTP: {value}.")
+
+
 def _check_domain_spoof(domain: str, warnings: List[str]) -> None:
     unicode_domain = validators.to_unicode_domain(domain)
+    domain_skeleton = validators.ascii_skeleton(unicode_domain)
     for brand in _KNOWN_BRANDS:
         ratio = SequenceMatcher(None, unicode_domain, brand).ratio()
-        if 0.82 < ratio < 1 and not unicode_domain.endswith(brand):
+        if unicode_domain.endswith(brand):
+            continue
+        if 0.82 < ratio < 1:
             warnings.append(
                 f"Домен '{unicode_domain}' похож на '{brand}' (возможная подмена)."
+            )
+            break
+        brand_label = brand.split(".", 1)[0]
+        if _contains_brand_fragment(domain_skeleton, brand_label):
+            warnings.append(
+                f"В домене '{unicode_domain}' обнаружен фрагмент, похожий на бренд '{brand_label}'."
             )
             break
     if validators.contains_punycode(domain) or validators.has_suspicious_unicode(domain):
@@ -92,11 +153,12 @@ def check_url_safety(url: str) -> dict:
     if validators.is_ip_address(domain):
         warnings.append("В качестве домена используется IP-адрес.")
 
-    if len(normalized) > 200:
-        warnings.append("Слишком длинная ссылка (более 200 символов).")
+    if len(normalized) > 150:
+        warnings.append("Слишком длинная ссылка (более 150 символов) — возможна маскировка параметров.")
 
     _check_keywords(url_lower, warnings)
     _check_redirects(url_lower, warnings)
+    _check_query_params(parsed, warnings)
     _check_domain_spoof(domain, warnings)
 
     safe = not warnings
