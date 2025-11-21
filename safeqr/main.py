@@ -1,4 +1,5 @@
 """Точка входа для приложения SafeQR."""
+
 from __future__ import annotations
 
 import argparse
@@ -21,11 +22,20 @@ except ModuleNotFoundError:  # pragma: no cover - fallback для web-режим
 
 def main() -> None:
     """Запускает FastAPI либо Tk-интерфейс в зависимости от режима."""
-    parser = argparse.ArgumentParser(description="SafeQR – защищённый генератор и сканер QR-кодов")
-    parser.add_argument("--mode", choices=["web", "tk"], default="web", help="Интерфейс: web (FastAPI) или tk.")
+    parser = argparse.ArgumentParser(
+        description="SafeQR – защищённый генератор и сканер QR-кодов"
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["web", "tk"],
+        default="web",
+        help="Интерфейс: web (FastAPI) или tk.",
+    )
     parser.add_argument("--host", default="127.0.0.1", help="Хост для FastAPI.")
     parser.add_argument("--port", type=int, default=8000, help="Порт для FastAPI.")
-    parser.add_argument("--no-browser", action="store_true", help="Не открывать браузер автоматически.")
+    parser.add_argument(
+        "--no-browser", action="store_true", help="Не открывать браузер автоматически."
+    )
     args = parser.parse_args()
 
     if args.mode == "tk":
@@ -40,8 +50,12 @@ def _run_web(*, host: str, port: int, open_browser: bool) -> None:
     try:
         url = f"http://{host}:{port}"
         if open_browser:
-            threading.Thread(target=_open_browser_later, args=(url,), daemon=True).start()
-        config = uvicorn.Config("safeqr.web:app", host=host, port=port, reload=False, log_level="info")
+            threading.Thread(
+                target=_open_browser_later, args=(url,), daemon=True
+            ).start()
+        config = uvicorn.Config(
+            "safeqr.web:app", host=host, port=port, reload=False, log_level="info"
+        )
         server = uvicorn.Server(config)
         server.run()
     except KeyboardInterrupt:
@@ -62,7 +76,9 @@ def _open_browser_later(url: str) -> None:
 def _run_tk() -> None:
     """Запускает классический Tk-интерфейс."""
     if tk is None:
-        raise RuntimeError("Tkinter недоступен в этой среде. Установите python3-tk или используйте режим web.")
+        raise RuntimeError(
+            "Tkinter недоступен в этой среде. Установите python3-tk или используйте режим web."
+        )
     try:
         from safeqr import ui
 

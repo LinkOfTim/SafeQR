@@ -1,4 +1,5 @@
 """Набор валидаторов и вспомогательных функций для обработки URL."""
+
 from __future__ import annotations
 
 import ipaddress
@@ -82,7 +83,7 @@ _GREEK_TO_LATIN: Final[dict[str, str]] = {
     "ω": "o",
 }
 _UNICODE_CONFUSABLES: Final[dict[str, str]] = {}
-for source, mapping in (list(_CYR_TO_LATIN.items()) + list(_GREEK_TO_LATIN.items())):
+for source, mapping in list(_CYR_TO_LATIN.items()) + list(_GREEK_TO_LATIN.items()):
     _UNICODE_CONFUSABLES[source] = mapping
     upper = source.upper()
     if upper != source:

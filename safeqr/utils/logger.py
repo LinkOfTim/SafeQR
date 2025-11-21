@@ -1,4 +1,5 @@
 """Утилиты логирования для SafeQR."""
+
 from __future__ import annotations
 
 from datetime import datetime

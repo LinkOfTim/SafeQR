@@ -1,4 +1,5 @@
 """FastAPI-приложение SafeQR."""
+
 from __future__ import annotations
 
 import base64
@@ -16,7 +17,9 @@ from safeqr.utils import validators
 from safeqr.utils.logger import get_log_path, log_error
 
 app = FastAPI(title="SafeQR", description="Генератор и сканер безопасных QR-кодов")
-_templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent / "templates"))
+_templates = Jinja2Templates(
+    directory=str(Path(__file__).resolve().parent / "templates")
+)
 _recent_checks: Deque[Dict[str, str]] = deque(maxlen=10)
 
 
@@ -92,7 +95,9 @@ async def scan_route(request: Request, qr_file: UploadFile = File(...)) -> HTMLR
         else:
             report = security.check_url_safety(payload)
             normalized = validators.normalize_url(payload)
-            _recent_checks.appendleft({"url": normalized, "risk": report["risk_level"].upper()})
+            _recent_checks.appendleft(
+                {"url": normalized, "risk": report["risk_level"].upper()}
+            )
             context = {"scan_result": payload, "security_report": report}
     except Exception as exc:
         log_error("WEB_SCAN", str(exc))

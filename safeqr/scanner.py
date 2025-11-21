@@ -1,4 +1,5 @@
 """Модуль сканирования QR-кодов из файла или с камеры."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,7 +10,9 @@ from safeqr.utils.logger import log_error, log_event, log_warning
 try:
     import cv2  # type: ignore
 except ImportError as exc:  # pragma: no cover - отсутствие cv2
-    raise ImportError("Не найдена библиотека opencv-python. Установите зависимости.") from exc
+    raise ImportError(
+        "Не найдена библиотека opencv-python. Установите зависимости."
+    ) from exc
 
 try:
     from pyzbar.pyzbar import decode  # type: ignore
@@ -39,7 +42,9 @@ def scan_from_file(path: str) -> Optional[str]:
 
     image = cv2.imread(str(file_path))
     if image is None:
-        raise ValueError("Не удалось считать изображение. Поддерживаются форматы PNG/JPEG.")
+        raise ValueError(
+            "Не удалось считать изображение. Поддерживаются форматы PNG/JPEG."
+        )
 
     payload = _decode_frame(image)
     if payload:

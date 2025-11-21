@@ -1,11 +1,26 @@
 """Tkinter-интерфейс для приложения SafeQR."""
+
 from __future__ import annotations
 
 import threading
 import tempfile
 from pathlib import Path
 import tkinter as tk
-from tkinter import BOTH, CENTER, END, LEFT, E, Button, Frame, Label, W, X, filedialog, messagebox, StringVar
+from tkinter import (
+    BOTH,
+    CENTER,
+    END,
+    LEFT,
+    E,
+    Button,
+    Frame,
+    Label,
+    W,
+    X,
+    filedialog,
+    messagebox,
+    StringVar,
+)
 from tkinter import ttk
 from tkinter import scrolledtext
 from typing import Optional
@@ -59,38 +74,64 @@ class SafeQRApp(ttk.Frame):
         buttons_frame = Frame(self.tab_generate)
         buttons_frame.pack(fill=X, padx=20)
 
-        Button(buttons_frame, text="Создать QR", command=self._handle_generate).pack(side=LEFT, padx=5)
-        Button(buttons_frame, text="Сохранить в файл", command=self._handle_save).pack(side=LEFT, padx=5)
+        Button(buttons_frame, text="Создать QR", command=self._handle_generate).pack(
+            side=LEFT, padx=5
+        )
+        Button(buttons_frame, text="Сохранить в файл", command=self._handle_save).pack(
+            side=LEFT, padx=5
+        )
 
-        self.preview_label = Label(self.tab_generate, text="Предпросмотр QR появится здесь", relief="sunken")
+        self.preview_label = Label(
+            self.tab_generate, text="Предпросмотр QR появится здесь", relief="sunken"
+        )
         self.preview_label.pack(fill=BOTH, expand=True, padx=20, pady=10)
 
     def _build_scan_tab(self) -> None:
         scan_buttons = Frame(self.tab_scan)
         scan_buttons.pack(fill=X, padx=20, pady=10)
 
-        Button(scan_buttons, text="Сканировать из файла", command=self._scan_from_file).pack(side=LEFT, padx=5)
-        Button(scan_buttons, text="Сканировать с камеры", command=self._scan_from_camera_async).pack(side=LEFT, padx=5)
+        Button(
+            scan_buttons, text="Сканировать из файла", command=self._scan_from_file
+        ).pack(side=LEFT, padx=5)
+        Button(
+            scan_buttons,
+            text="Сканировать с камеры",
+            command=self._scan_from_camera_async,
+        ).pack(side=LEFT, padx=5)
 
         self.scan_result_var = StringVar(value="Результат: нет данных")
-        ttk.Label(self.tab_scan, textvariable=self.scan_result_var, font=("Arial", 12, "bold")).pack(padx=20, pady=10, anchor=W)
+        ttk.Label(
+            self.tab_scan, textvariable=self.scan_result_var, font=("Arial", 12, "bold")
+        ).pack(padx=20, pady=10, anchor=W)
 
-        self.security_label = Label(self.tab_scan, text="Уровень риска: нет", bg="lightgrey", width=40)
+        self.security_label = Label(
+            self.tab_scan, text="Уровень риска: нет", bg="lightgrey", width=40
+        )
         self.security_label.pack(padx=20, pady=5, anchor=W)
 
-        self.security_report = scrolledtext.ScrolledText(self.tab_scan, height=10, state="disabled")
+        self.security_report = scrolledtext.ScrolledText(
+            self.tab_scan, height=10, state="disabled"
+        )
         self.security_report.pack(fill=BOTH, expand=True, padx=20, pady=10)
 
     def _build_reports_tab(self) -> None:
         log_frame = Frame(self.tab_reports)
         log_frame.pack(fill=BOTH, expand=True, padx=20, pady=10)
 
-        Button(log_frame, text="Обновить журнал", command=self._update_log_view).pack(anchor=E)
-        self.log_view = scrolledtext.ScrolledText(log_frame, height=15, state="disabled")
+        Button(log_frame, text="Обновить журнал", command=self._update_log_view).pack(
+            anchor=E
+        )
+        self.log_view = scrolledtext.ScrolledText(
+            log_frame, height=15, state="disabled"
+        )
         self.log_view.pack(fill=BOTH, expand=True, pady=5)
 
-        ttk.Label(self.tab_reports, text="Последние проверенные ссылки").pack(anchor=W, padx=20, pady=5)
-        self.links_table = ttk.Treeview(self.tab_reports, columns=("url", "risk"), show="headings", height=5)
+        ttk.Label(self.tab_reports, text="Последние проверенные ссылки").pack(
+            anchor=W, padx=20, pady=5
+        )
+        self.links_table = ttk.Treeview(
+            self.tab_reports, columns=("url", "risk"), show="headings", height=5
+        )
         self.links_table.heading("url", text="Ссылка")
         self.links_table.heading("risk", text="Риск")
         self.links_table.column("url", width=600)
@@ -119,7 +160,9 @@ class SafeQRApp(ttk.Frame):
         if not self.latest_payload:
             messagebox.showwarning("Нет данных", "Сначала создайте QR-код.")
             return
-        filename = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG", ".png")])
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".png", filetypes=[("PNG", ".png")]
+        )
         if not filename:
             return
         try:
@@ -131,7 +174,9 @@ class SafeQRApp(ttk.Frame):
 
     # --- сканирование ---
     def _scan_from_file(self) -> None:
-        file_path = filedialog.askopenfilename(filetypes=[("Изображения", ".png .jpg .jpeg .bmp")])
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Изображения", ".png .jpg .jpeg .bmp")]
+        )
         if not file_path:
             return
         try:
@@ -142,7 +187,9 @@ class SafeQRApp(ttk.Frame):
             messagebox.showerror("Ошибка", str(exc))
 
     def _scan_from_camera_async(self) -> None:
-        messagebox.showinfo("Камера", "Запуск сканирования. Для отмены закройте окно камеры.")
+        messagebox.showinfo(
+            "Камера", "Запуск сканирования. Для отмены закройте окно камеры."
+        )
         threading.Thread(target=self._scan_from_camera_worker, daemon=True).start()
 
     def _scan_from_camera_worker(self) -> None:
@@ -168,7 +215,9 @@ class SafeQRApp(ttk.Frame):
 
     def _update_security_ui(self, report: dict) -> None:
         risk = report["risk_level"]
-        color = {"low": "#17a589", "medium": "#f4d03f", "high": "#e74c3c"}.get(risk, "lightgrey")
+        color = {"low": "#17a589", "medium": "#f4d03f", "high": "#e74c3c"}.get(
+            risk, "lightgrey"
+        )
         text = f"Уровень риска: {risk.upper()}"
         self.security_label.configure(text=text, bg=color)
         self._update_security_text(report["warnings"])
@@ -177,7 +226,9 @@ class SafeQRApp(ttk.Frame):
         self.security_report.configure(state="normal")
         self.security_report.delete("1.0", END)
         if not warnings:
-            self.security_report.insert(END, "Предупреждений нет. Ссылка выглядит безопасной.")
+            self.security_report.insert(
+                END, "Предупреждений нет. Ссылка выглядит безопасной."
+            )
         else:
             for item in warnings:
                 self.security_report.insert(END, f"• {item}\n")

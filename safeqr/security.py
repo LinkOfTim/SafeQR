@@ -1,4 +1,5 @@
 """Проверки безопасности ссылок, извлечённых из QR-кода."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -132,9 +133,13 @@ def _check_query_params(parsed, warnings: List[str]) -> None:
     for key, value in params:
         key_lower = key.lower()
         if key_lower in _SUSPICIOUS_PARAMS:
-            warnings.append(f"Параметр '{key}' может использоваться для редиректа или подмены.")
+            warnings.append(
+                f"Параметр '{key}' может использоваться для редиректа или подмены."
+            )
         if value and "http://" in value.lower():
-            warnings.append(f"Параметр '{key}' перенаправляет на небезопасный HTTP: {value}.")
+            warnings.append(
+                f"Параметр '{key}' перенаправляет на небезопасный HTTP: {value}."
+            )
 
 
 def _check_domain_spoof(domain: str, warnings: List[str]) -> None:
@@ -155,7 +160,9 @@ def _check_domain_spoof(domain: str, warnings: List[str]) -> None:
                 f"В домене '{unicode_domain}' обнаружен фрагмент, похожий на бренд '{brand_label}'."
             )
             break
-    if validators.contains_punycode(domain) or validators.has_suspicious_unicode(domain):
+    if validators.contains_punycode(domain) or validators.has_suspicious_unicode(
+        domain
+    ):
         warnings.append("Обнаружен punycode или необычные символы в домене.")
 
 
@@ -177,7 +184,9 @@ def check_url_safety(url: str) -> dict:
         warnings.append("В качестве домена используется IP-адрес.")
 
     if len(normalized) > 150:
-        warnings.append("Слишком длинная ссылка (более 150 символов) — возможна маскировка параметров.")
+        warnings.append(
+            "Слишком длинная ссылка (более 150 символов) — возможна маскировка параметров."
+        )
 
     _check_keywords(url_lower, warnings)
     _check_redirects(url_lower, warnings)

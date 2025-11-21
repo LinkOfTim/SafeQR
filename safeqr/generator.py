@@ -1,4 +1,5 @@
 """Модуль генерации безопасных QR-кодов."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -20,13 +21,17 @@ def _sanitize_payload(data: str) -> str:
         raise ValueError("Пустые данные не могут быть закодированы в QR.")
     cleaned = data.strip()
     if len(cleaned) > 2048:
-        raise ValueError("Данные слишком длинные для безопасного QR (ограничение 2048 символов).")
+        raise ValueError(
+            "Данные слишком длинные для безопасного QR (ограничение 2048 символов)."
+        )
     if validators.is_valid_url(cleaned):
         cleaned = validators.normalize_url(cleaned)
     return cleaned
 
 
-def generate_qr(data: str, filename: str, *, version: int = 4, box_size: int = 10, border: int = 4) -> str:
+def generate_qr(
+    data: str, filename: str, *, version: int = 4, box_size: int = 10, border: int = 4
+) -> str:
     """Создаёт QR-код и сохраняет его в файл, возвращая путь к файлу."""
     payload = _sanitize_payload(data)
 
