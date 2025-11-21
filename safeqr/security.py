@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-from typing import Final, List
+from typing import Final, List, Optional
 from urllib.parse import urlsplit, parse_qsl
 
 from safeqr.utils import validators
@@ -74,6 +74,26 @@ def _assess_risk(warnings: List[str]) -> str:
     return "high"
 
 
+def _normalize_if_url(value: str) -> Optional[str]:
+    """Пытается нормализовать строку как URL, иначе возвращает None."""
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    candidate = raw if "://" in raw else f"https://{raw}"
+    normalized = validators.normalize_url(candidate)
+    if any(ch.isspace() for ch in normalized):
+        return None
+    parsed = urlsplit(normalized)
+    if not parsed.scheme or not parsed.netloc:
+        return None
+    domain = validators.extract_domain(normalized)
+    if not domain:
+        return None
+    if not (validators.is_ip_address(domain) or "." in domain):
+        return None
+    return normalized
+
+
 def _check_redirects(url_lower: str, warnings: List[str]) -> None:
     if "?redirect=" in url_lower or "//@" in url_lower:
         warnings.append("Обнаружены признаки редиректов (redirect или //@).")
@@ -142,7 +162,10 @@ def _check_domain_spoof(domain: str, warnings: List[str]) -> None:
 def check_url_safety(url: str) -> dict:
     """Проводит серию эвристических проверок и возвращает оценку риска."""
     warnings: List[str] = []
-    normalized = validators.normalize_url(url)
+    normalized = _normalize_if_url(url)
+    if normalized is None:
+        return SecurityReport(safe=True, warnings=warnings, risk_level="low").as_dict()
+
     parsed = urlsplit(normalized)
     url_lower = normalized.lower()
 
