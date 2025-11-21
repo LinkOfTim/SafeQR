@@ -44,6 +44,9 @@ def _run_web(*, host: str, port: int, open_browser: bool) -> None:
         config = uvicorn.Config("safeqr.web:app", host=host, port=port, reload=False, log_level="info")
         server = uvicorn.Server(config)
         server.run()
+    except KeyboardInterrupt:
+        print("SafeQR: сервер остановлен. Хорошего дня!", file=sys.stderr)
+        return
     except Exception as exc:  # pragma: no cover
         log_error("WEB_CRASH", str(exc))
         _show_fatal_error(exc)
